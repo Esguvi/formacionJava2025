@@ -1,18 +1,23 @@
 package com.edisa.formacion.mayo2025;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.*;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +43,7 @@ public class Recursos {
 
     @GET
     @Path("/codabar/generarqr")
-    @Produces("image/qr")
+    @Produces("image/png")
     public Response generarQR(
             @QueryParam("texto") String texto) {
 
@@ -48,7 +53,7 @@ public class Recursos {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             MatrixToImageWriter.writeToStream(bitMatrix, "png", baos);
 
-            return Response.ok(new ByteArrayInputStream(baos.toByteArray())).type("image/qr").build();
+            return Response.ok(new ByteArrayInputStream(baos.toByteArray())).type("image/png").build();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,9 +82,27 @@ public class Recursos {
         }
     }
 
+    @POST
+    @Path("/codabar/leer_codigo_barras")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response leerCodigoBarras(InputStream imagenCargada) {
+        try {
+            BufferedImage bf = ImageIO.read(imagenCargada);
 
+            LuminanceSource ls = new BufferedImageLuminanceSource(bf);
+            BinaryBitmap bbitmap = new BinaryBitmap(new HybridBinarizer(ls));
+            Result result = new MultiFormatReader().decode(bbitmap);
 
+            Map<String, String> resultado = new HashMap<>();
+            resultado.put("texto", result.getText());
 
+            return Response.ok(resultado).build();
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al procesar la imagen: " + e.getMessage()).build();
+        }
+    }
 
     @POST
     @Path("/persona")
