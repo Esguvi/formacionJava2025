@@ -7,7 +7,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.*;
 
-public class Main {
+public class QRGenerador {
 
 
     public static void main(String[] args) {

@@ -6,7 +6,7 @@ import com.google.zxing.common.BitMatrix;
 
 import java.io.*;
 
-public class MainExtra {
+public class CodigoDeBarras {
 
 
     public static void main(String[] args) {
